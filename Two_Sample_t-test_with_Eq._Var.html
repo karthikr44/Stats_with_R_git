@@ -119,8 +119,8 @@ $(document).ready(function () {
 </div>
 
 
-<div id="two-sample-t-test-with-equal-variances-manual" class="section level2">
-<h2>Two Sample t-test with Equal Variances ( Manual )</h2>
+<div id="two-sample-t-test-with-equal-variances-manually" class="section level2">
+<h2>Two Sample t-test with Equal Variances ( Manually )</h2>
 <p>Two sample t-test is used to check if there is a difference between one quantitative variable from each of the two groups.</p>
 <p> </p>
 <blockquote>
@@ -183,14 +183,6 @@ head(infile)</code></pre>
 ## 4          0.885
 ## 5          0.913
 ## 6          0.934</code></pre>
-<pre class="r"><code>mu_zero = 30
-sample_mean = 33
-sample_sd = 5.6 
-nr_of_samples = 32
-
-t = (sample_mean - mu_zero) / (sample_sd / sqrt(nr_of_samples))
-print(t)</code></pre>
-<pre><code>## [1] 3.03046</code></pre>
 <p>There are four test cases: SH-COLD, SH-RT, 3B-COLD and 3B-RT. SH and 3B are two local craft breweries and COLD and RT indicates the measurements were taked at cold or room temperature.</p>
 <ul>
 <li>Histogram of Tau</li>
@@ -266,7 +258,7 @@ plot(threeBrt, col=rgb(1,0,0,1/4), xlim=c(100,400), add = T)</code></pre>
 </div>
 <div id="step-3-calculate-t-statistic-for-equal-variance" class="section level5">
 <h5><strong>Step 3</strong>: Calculate t-statistic for equal variance</h5>
-<p><span class="math display">\[t = \frac{\bar{x_1} - \bar{x_2} - D_0}{SE(\bar{x_1} - \bar{x_2})} \qquad where,\enspace  SE(\bar{x_1} - \bar{x_2}) = SD_{pooled} * \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}, \enspace SD_{pooled} = \sqrt{\frac{(n_1 - 1)*s_1^2 + (n_2 - 1)*s_2^2 }{n_1 + n_2 - 2}} \]</span></p>
+<p><span class="math display">\[t = \frac{\bar{x_1} - \bar{x_2} - D_0}{SE(\bar{x_1} - \bar{x_2})} \qquad where,\enspace  SE(\bar{x_1} - \bar{x_2}) = SD_{pooled} * \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}\]</span> <span class="math display">\[SD_{pooled} = \sqrt{\frac{(n_1 - 1)*s_1^2 + (n_2 - 1)*s_2^2 }{n_1 + n_2 - 2}}\]</span></p>
 <p> </p>
 <p>Let us calculate first pooled standard deviation,</p>
 <pre class="r"><code>threeB_cold = infile[infile$test.case==&quot;3B-COLD&quot;,]  #Group 1

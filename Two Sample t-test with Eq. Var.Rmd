@@ -1,4 +1,4 @@
-## Two Sample t-test with Equal Variances ( Manual )
+## Two Sample t-test with Equal Variances ( Manually )
 
 Two sample t-test is used to check if there is a difference between one quantitative variable from each of the two groups. 
 
@@ -49,14 +49,6 @@ options (scipen = 5)
 ```{r}
 infile = read.csv("data/beer-foam.csv", header=T)
 head(infile)
-
-mu_zero = 30
-sample_mean = 33
-sample_sd = 5.6 
-nr_of_samples = 32
-
-t = (sample_mean - mu_zero) / (sample_sd / sqrt(nr_of_samples))
-print(t)
 ```
 
 There are four test cases: SH-COLD, SH-RT, 3B-COLD and 3B-RT. SH and 3B are two local craft breweries and COLD and RT indicates the measurements were taked at cold or room temperature. 
@@ -128,7 +120,8 @@ alpha = 0.01
 
 ##### **Step 3**: Calculate t-statistic for equal variance
 
-$$t = \frac{\bar{x_1} - \bar{x_2} - D_0}{SE(\bar{x_1} - \bar{x_2})} \qquad where,\enspace  SE(\bar{x_1} - \bar{x_2}) = SD_{pooled} * \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}, \enspace SD_{pooled} = \sqrt{\frac{(n_1 - 1)*s_1^2 + (n_2 - 1)*s_2^2 }{n_1 + n_2 - 2}} $$
+$$t = \frac{\bar{x_1} - \bar{x_2} - D_0}{SE(\bar{x_1} - \bar{x_2})} \qquad where,\enspace  SE(\bar{x_1} - \bar{x_2}) = SD_{pooled} * \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}$$ 
+$$SD_{pooled} = \sqrt{\frac{(n_1 - 1)*s_1^2 + (n_2 - 1)*s_2^2 }{n_1 + n_2 - 2}}$$
 
 &nbsp;
 

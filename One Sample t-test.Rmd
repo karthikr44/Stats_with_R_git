@@ -1,4 +1,4 @@
-## One Sample t-test ( Manual )
+## One Sample t-test ( Manually )
 
 ```{r include=FALSE}
 options (digits = 6)
