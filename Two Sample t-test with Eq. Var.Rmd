@@ -1,0 +1,275 @@
+## Two Sample t-test with Equal Variances ( Manual )
+
+Two sample t-test is used to check if there is a difference between one quantitative variable from each of the two groups. 
+
+
+```{r include=FALSE}
+options (digits = 6)
+options (scipen = 5)
+```
+
+
+&nbsp;
+
+>*Question: Stability of the beer foam influences the overall perceived quality of a beer. It can be measured by a variable called tau which tells the half-life of the foam stand on top of the poured beer.*
+>*So for this, let us determine: Is there a difference between the foam stand of a particular beer if it's poured at room temparature versus poured cold?* 
+
+- Step 0: Check your assumptions
+- Step 1: Set Null and alternate hypothesis
+- Step 2: Choose alpha, Level of Significance
+- Step 3: Calcualte the Test Statistic
+- Step 4: Draw a picture
+- Step 5: Find the p-value
+- Step 6: Is the p-value < $\alpha$ ? If so, Reject the Null
+- Step 7: Also Compute a Confidence Interval to DoubleCheck
+
+&nbsp;
+
+##### Step 0: Assumptions
+- Random Sample
+- Observations are Independent
+- Sample is less than 10% of the entire population size
+- Differences are nearly normal or the Sample size is atleast more than 30. 
+- If the sample differences aren't normally distributed or when we have rank-ordered data instead of continuous quantitative data, we can choose **nonparametric alternative** for Two sample t-test with equal variance : **Wilcoxon Two Sample Signed Rank test**
+- For two-sample t-test, we need to check the variance across the group. 
+    - Informal way. 
+           - Larger standard deviation is no more than twice the smaller standard deviation, then consider the two population variances equal. 
+           - Take a look at the histograms and see if both have approximately the same width. 
+    - Formal way
+           - F test for equality of variances. Using `var.test` command in R
+
+&nbsp;
+
+##### **Step 1**: Set Hypothesis
+- Set null hypothesis $$H_0: \enspace \mu_{COLD} - \mu_{RT} = 0. \qquad  (There\ is\ no\ difference\ between\ mean\ tau) $$
+- Set alternate hypothesis $$\qquad \ \ H_a: \enspace \mu_{COLD} - \mu_{RT} > 0. \qquad (Cold\ beer\ has\ higher\ tau\ than\ room\ temparature) $$
+
+&nbsp;
+
+```{r}
+infile = read.csv("data/beer-foam.csv", header=T)
+head(infile)
+
+mu_zero = 30
+sample_mean = 33
+sample_sd = 5.6 
+nr_of_samples = 32
+
+t = (sample_mean - mu_zero) / (sample_sd / sqrt(nr_of_samples))
+print(t)
+```
+
+There are four test cases: SH-COLD, SH-RT, 3B-COLD and 3B-RT. SH and 3B are two local craft breweries and COLD and RT indicates the measurements were taked at cold or room temperature. 
+
+- Histogram of Tau
+
+&nbsp;
+
+```{r fig.show="hide"}
+shcold <- hist(infile[infile$test.case=="SH-COLD",]$tau, breaks = 12)
+shrt <- hist(infile[infile$test.case=="SH-RT",]$tau, breaks = 6)
+threeBcold <- hist(infile[infile$test.case=="3B-COLD",]$tau, breaks = 12)
+threeBrt <- hist(infile[infile$test.case=="3B-RT",]$tau, breaks = 12)
+```
+
+&nbsp;
+
+- Plot the Tau for SH. 
+
+```{r}
+plot(shcold, col=rgb(0,0,1,1/4), xlim=c(100,400), ylim=c(0,12), main="Tau for Cold and Room Temparature Cases (SH)", xlab="Tau", ylab="Frequency")
+plot(shrt, col=rgb(1,0,0,1/4), xlim=c(100,400), add = T)
+```
+
+&nbsp;
+
+- Plot the Tau for 3B. 
+
+```{r}
+plot(threeBcold, col=rgb(0,0,1,1/4), xlim=c(100,400), ylim=c(0,12), main="Tau for Cold and Room Temparature Cases (3B)", xlab="Tau", ylab="Frequency")
+plot(threeBrt, col=rgb(1,0,0,1/4), xlim=c(100,400), add = T)
+```
+
+- Check the variance for SH. 
+
+```{r}
+var.test(infile[infile$test.case=="SH-COLD",]$tau, infile[infile$test.case=="SH-RT",]$tau)
+```
+
+&nbsp;
+
+- Check the variance for 3B. 
+
+```{r}
+var.test(infile[infile$test.case=="3B-COLD",]$tau, infile[infile$test.case=="3B-RT",]$tau)
+```
+
+&nbsp;
+
+>*In F-test, null hypothesis is ratio of variances equal to 1. Alternate is not equal to 1. So if P-Value is less than $\alpha$ (normally 0.05), then we reject the null hypotheis and we conclude that variance is not equal.*
+>*In our case, for SH we see unqual variance (p-values are low). It is also evident from the above histogram plot. But for 3B we see equal variance (p-values are high). So we can proceed to perform two sample t-test with equal variance for 3B.*
+
+##### **Step 2**: Choose $\alpha$
+- Set $\alpha$ = 0.01 
+
+- I will reject null, only if there is strong evidence that there is a difference. Because,  
+    - Risk associated with drawing incorrect conclusions is moderately high, if the brewery making recommendations to their distributors. 
+    - Business decisions could impact the brewery's reputation. 
+    - Cost of collecting new observations is substantial in terms of time and effort (but not money). 
+    
+
+```{r}
+alpha = 0.01
+
+```
+
+
+&nbsp;
+
+##### **Step 3**: Calculate t-statistic for equal variance
+
+$$t = \frac{\bar{x_1} - \bar{x_2} - D_0}{SE(\bar{x_1} - \bar{x_2})} \qquad where,\enspace  SE(\bar{x_1} - \bar{x_2}) = SD_{pooled} * \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}, \enspace SD_{pooled} = \sqrt{\frac{(n_1 - 1)*s_1^2 + (n_2 - 1)*s_2^2 }{n_1 + n_2 - 2}} $$
+
+&nbsp;
+
+Let us calculate first pooled standard deviation, 
+
+
+```{r}
+threeB_cold = infile[infile$test.case=="3B-COLD",]  #Group 1
+threeB_rt = infile[infile$test.case=="3B-RT",]      #Group 2
+
+cold_samples = nrow(threeB_cold)  #Nr. of samples in group 1
+rt_samples = nrow(threeB_rt)      #Nr. of samples in group 2
+
+cold_sd = sd(threeB_cold$tau)     #Standard deviation of Tau for group 1
+rt_sd = sd(threeB_rt$tau)         #Standard deviation of Tau for group 2
+
+sd_pooled_num = (cold_samples - 1)*cold_sd^2 + (rt_samples - 1)*rt_sd^2
+sd_pooled_denom = cold_samples + rt_samples - 2
+
+sd_pooled = sqrt(sd_pooled_num / sd_pooled_denom)
+
+```
+
+&nbsp; 
+
+Now we can calcuate test statistic. 
+
+```{r}
+
+cold_mean = mean(threeB_cold$tau)  #Mean of Tau for group 1
+rt_mean = mean(threeB_rt$tau)      #Mean of Tau for group 2
+
+num = cold_mean - rt_mean - 0 
+denom = sd_pooled * sqrt(1/cold_samples + 1/rt_samples)
+
+t = num / denom                    #Test Statistic
+print(t)
+```
+
+&nbsp; 
+
+##### **Step 4**: Plot the Sampling Distribution of mean
+```{r echo=FALSE, fig.width=6, fig.height=5}
+source("shadenorm.R")
+
+shadenorm(between=c(t,Inf), color="violet", title("Sampling Distribution of the Mean"))
+
+```
+
+
+##### **Step 5**: Calculate `P-Value`
+
+&nbsp;
+
+>*To calcuate the P-value for t-distribution we need to know the degree of freedom. For Two sampled t-test with equal variance, it can be calculated as,* 
+
+$$df = nr.of.samples\ in\ group1 + nr.of.samples\ in\ group2 - 2$$
+
+&nbsp;
+
+```{r}
+df = cold_samples + rt_samples - 2
+p_value = 1-pt(t, df = df )  #100% of the total area under the t-distribution minus the area to the left of t-statistic. 
+print(p_value)
+
+```
+
+&nbsp;
+
+##### **Step 6**: Is the `P-Value` < $\alpha$
+
+&nbsp;
+
+```{r echo=FALSE}
+if (p_value < alpha) {
+  print ("P-Value is less the alpha, Reject the Null Hypothesis !")
+} else {
+  print ("P-Value is not less the alpha, so Fail to Reject the Null Hypothesis !")
+}
+
+```
+
+&nbsp;
+
+##### **Step 7**: Confidence Interval
+
+&nbsp;
+
+$$ Confidence Interval \enspace = \enspace \bar{x} \pm t_{critical} * SE(\bar{x}) \enspace = \enspace \bar{x} \pm t_{critical} * SD_{pooled} * \sqrt{\frac{1}{n_1} + \frac{1}{n_2}}, \enspace SD_{pooled} = \sqrt{\frac{(n_1 - 1)*s_1^2 + (n_2 - 1)*s_2^2 }{n_1 + n_2 - 2}} $$
+
+&nbsp; 
+
+- Let us first calculate critical value for our chosen $\alpha$ and degree of freedom. 
+
+```{r}
+area = 1-(alpha/2)  #Assume alpha as 5%. 100% - 5% = 95%. To calculate 95% interval we need to find the area between (2.5% and 97.5%). So divide alpha/2 and subtract from 1 for arriving the upper limit value 0.975.  
+
+t_critical = qt(area, df = df)  #Critical value of t at 97.5%. Since t-distribution is symmetric critical value at 2.5% will be same. 
+
+sprintf("Critical value for %s%% confidence interval - One sided test is: %s",(1-alpha)*100, t_critical)
+
+```
+
+&nbsp;
+
+- Now we can calcuate our confidence interval. 
+
+```{r}
+
+mean_diff = cold_mean - rt_mean
+
+confidence_lower_limit = mean_diff - (t_critical * sd_pooled * sqrt(1/cold_samples + 1/rt_samples) )
+
+confidence_upper_limit = mean_diff + (t_critical * sd_pooled * sqrt(1/cold_samples + 1/rt_samples) )
+
+sprintf ("%s%% Confidence level of difference of mean between two groups is between %s and %s",(1-alpha)*100, confidence_lower_limit, confidence_upper_limit)
+
+```
+
+&nbsp; 
+
+## Two Sample t-test - Using R
+
+&nbsp; 
+
+##### Perform Two Sample One-tail t-test
+
+```{r}
+t.test(threeB_cold$tau, threeB_rt$tau, alternative="greater", var.equal = TRUE, conf.level = 0.99)
+```
+
+&nbsp; 
+
+>*In R, the confidence interval calculation will be different while performing one-tail test in R and not expected as we want. So to know the correct confidence interval, we need to remove the option alternative="greater" for performing two-tailed test.* 
+
+&nbsp; 
+
+```{r}
+t.test(threeB_cold$tau, threeB_rt$tau, var.equal = TRUE, conf.level = 0.99)
+```
+
+>*Above is the Confidence Interval which we interested. This is same as we manually calculated. !!*
+
+

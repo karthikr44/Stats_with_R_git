@@ -27,6 +27,7 @@ options (scipen = 5)
 - Observations are Independent
 - Sample is less than 10% of the entire population size
 - Differences are nearly normal or the Sample size is atleast more than 30. 
+- If the sample differences aren't normally distributed or when we have rank-ordered data instead of continuous quantitative data, we can choose **nonparametric alternative** for One sample t-test : **Wilcoxon One Sample Signed Rank test**
 
 &nbsp;
 
@@ -78,8 +79,15 @@ shadenorm(between=c(t,Inf), color="violet", title("Sampling Distribution of the 
 
 &nbsp;
 
+>*To calcuate the P-value for t-distribution we need to know the degree of freedom. For One sampled t-test, it can be calcuated as follows,*
+
+$$df = nr.of.samples - 1$$
+
+&nbsp;
+
 ```{r}
-p_value = 1-pt(t, df = nr_of_samples-1 )  #100% of the total area under the t distribution minus the area to the left of t-statistic. 
+df = nr_of_samples-1
+p_value = 1-pt(t, df = df)  #100% of the total area under the t-distribution minus the area to the left of t-statistic. 
 print(p_value)
 
 ```
@@ -107,16 +115,22 @@ if (p_value < alpha) {
 
 $$ Confidence Interval \enspace = \enspace \bar{x} \pm t_{critical} * SE(\bar{x}) \enspace = \enspace \bar{x} \pm t_{critical} * \frac{SD(\bar{x})}{\sqrt{n}} $$
 
-```{r}
-area = 1-alpha      #100% - 5% = 95%. For two-tailed test it will be 1-(alpha/2) 
+&nbsp; 
 
-t_critical = qt(area, df = nr_of_samples-1)  #Critical value of t at 95%. For two-tailed we will calcuate the critical value at 97.5%. Since t-distribution is symmetric critical value at 2.5% will be same. 
+- Let us first calculate critical value for our chosen $\alpha$ and degree of freedom. 
+
+```{r}
+area = 1-(alpha/2)  #Assume alpha as 5%. 100% - 5% = 95%. To calculate 95% interval we need to find the area between (2.5% and 97.5%). So divide alpha/2 and subtract from 1 for arriving the upper limit value 0.975.  
+
+t_critical = qt(area, df = df)  #Critical value of t at 97.5%. Since t-distribution is symmetric critical value at 2.5% will be same. 
 
 sprintf("Critical value for %s%% confidence interval - One sided test is: %s",(1-alpha)*100, t_critical)
 
 ```
 
 &nbsp;
+
+- Now we can calcuate our confidence interval. 
 
 ```{r}
 
@@ -142,7 +156,7 @@ speeds = c(29, 25, 22, 34, 38, 40, 27, 29, 30, 30, 23, 34, 42, 36, 35, 27, 37)
 
 &nbsp; 
 
-##### Perform One sided t-test
+##### Perform One Sample One-tail t-test
 
 ```{r}
 t.test(speeds, mu=mu_zero, alternative="greater")
@@ -151,7 +165,7 @@ t.test(speeds, mu=mu_zero, alternative="greater")
 
 &nbsp; 
 
->*In R, the confidence interval calculation will be different while performing one-side test in R and not expected as we want. So to know the correct confidence interval, we need to remove the option alternative="greater" for performing two-tailed test.* 
+>*In R, the confidence interval calculation will be different while performing one-tail test in R and not expected as we want. So to know the correct confidence interval, we need to remove the option alternative="greater" for performing two-tailed test.* 
 
 &nbsp; 
 
@@ -160,6 +174,7 @@ t.test(speeds, mu=mu_zero)
 ```
 
 >*Above is the Confidence Interval which we interested.*
+>*Notice here the p-value got doubled, because now it accounts on both side of the tail beyond our test- statistic value. For One-tailed test, it will only account for the area greater or lesser than our test-statistic value.* 
 
 
 
