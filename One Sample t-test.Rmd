@@ -1,0 +1,166 @@
+## One Sample t-test ( Manual )
+
+```{r include=FALSE}
+options (digits = 6)
+options (scipen = 5)
+```
+
+
+&nbsp;
+
+>*Question: Is the average speed of cars that drive down Reservoir Rd. in* 
+>*Harrisonburg, Virgina more than 5 miles per hour (mph) above the speed limit ?* 
+
+- Step 0: Check your assumptions
+- Step 1: Set Null and alternate hypothesis
+- Step 2: Choose alpha, Level of Significance
+- Step 3: Calcualte the Test Statistic
+- Step 4: Draw a picture
+- Step 5: Find the p-value
+- Step 6: Is the p-value < $\alpha$ ? If so, Reject the Null
+- Step 7: Also Compute a Confidence Interval to DoubleCheck
+
+&nbsp;
+
+##### Step 0: Assumptions
+- Random Sample
+- Observations are Independent
+- Sample is less than 10% of the entire population size
+- Differences are nearly normal or the Sample size is atleast more than 30. 
+
+&nbsp;
+
+##### **Step 1**: Set Hypothesis
+- Set null hypothesis $H_0$. mu.zero = 30 miles per hour
+- Set alternate hypothesis $H_a$. sample.mean > 30 miles per hour 
+
+&nbsp;
+
+##### **Step 2**: Choose $\alpha$
+- Set $\alpha$ = 0.05 (I will reject null, only if there is strong evidence that people are driving fast. So will be incorrect only 5 times out of 100)
+
+```{r}
+alpha = 0.05
+
+```
+
+
+&nbsp;
+
+##### **Step 3**: Calculate t-statistic
+
+$$t = \frac{\bar{x} - \mu_0}{SE(\bar{x})} \qquad where,\enspace  SE(\bar{x}) = SD(\bar{x}) / \sqrt{n} $$
+
+&nbsp;
+
+```{r}
+mu_zero = 30
+sample_mean = 33
+sample_sd = 5.6 
+nr_of_samples = 32
+
+t = (sample_mean - mu_zero) / (sample_sd / sqrt(nr_of_samples))
+print(t)
+```
+
+&nbsp;
+
+##### **Step 4**: Plot the Sampling Distribution of mean
+```{r echo=FALSE, fig.width=6, fig.height=5}
+source("shadenorm.R")
+
+shadenorm(between=c(t,Inf), color="violet", title("Sampling Distribution of the Mean"))
+
+```
+
+
+##### **Step 5**: Calculate `P-Value`
+
+&nbsp;
+
+```{r}
+p_value = 1-pt(t, df = nr_of_samples-1 )  #100% of the total area under the t distribution minus the area to the left of t-statistic. 
+print(p_value)
+
+```
+
+&nbsp;
+
+##### **Step 6**: Is the `P-Value` < $\alpha$
+
+&nbsp;
+
+```{r echo=FALSE}
+if (p_value < alpha) {
+  print ("P-Value is less the alpha, Reject the Null Hypothesis !")
+} else {
+  print ("P-Value is not less the alpha, so Fail to Reject the Null Hypothesis !")
+}
+
+```
+
+&nbsp;
+
+##### **Step 7**: Confidence Interval
+
+&nbsp;
+
+$$ Confidence Interval \enspace = \enspace \bar{x} \pm t_{critical} * SE(\bar{x}) \enspace = \enspace \bar{x} \pm t_{critical} * \frac{SD(\bar{x})}{\sqrt{n}} $$
+
+```{r}
+area = 1-alpha      #100% - 5% = 95%. For two-tailed test it will be 1-(alpha/2) 
+
+t_critical = qt(area, df = nr_of_samples-1)  #Critical value of t at 95%. For two-tailed we will calcuate the critical value at 97.5%. Since t-distribution is symmetric critical value at 2.5% will be same. 
+
+sprintf("Critical value for %s%% confidence interval - One sided test is: %s",(1-alpha)*100, t_critical)
+
+```
+
+&nbsp;
+
+```{r}
+
+confidence_lower_limit = sample_mean - (t_critical * sample_sd/sqrt(nr_of_samples))
+
+confidence_upper_limit = sample_mean + (t_critical * sample_sd/sqrt(nr_of_samples))
+
+sprintf ("%s%% Confidence level of sample mean is between %s and %s",(1-alpha)*100, confidence_lower_limit, confidence_upper_limit)
+
+```
+
+&nbsp; 
+
+## One Sample t-test - Using R
+
+&nbsp; 
+
+##### Create input samples variable. 
+
+```{r}
+speeds = c(29, 25, 22, 34, 38, 40, 27, 29, 30, 30, 23, 34, 42, 36, 35, 27, 37)
+```
+
+&nbsp; 
+
+##### Perform One sided t-test
+
+```{r}
+t.test(speeds, mu=mu_zero, alternative="greater")
+
+```
+
+&nbsp; 
+
+>*In R, the confidence interval calculation will be different while performing one-side test in R and not expected as we want. So to know the correct confidence interval, we need to remove the option alternative="greater" for performing two-tailed test.* 
+
+&nbsp; 
+
+```{r}
+t.test(speeds, mu=mu_zero)
+```
+
+>*Above is the Confidence Interval which we interested.*
+
+
+
+
